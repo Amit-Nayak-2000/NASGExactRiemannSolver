@@ -10,17 +10,19 @@ int main(int argc, char *argv[]){
 
     // Primitive Vectors: density, velocity, pressure
     std::vector<double> PrimL(3);
-    PrimL[0] = 1.0; //Density
-    PrimL[1] = 0.0; //Velocity
-    PrimL[2] = 1.0; //Pressure
+    PrimL[0] = 5.99924; //Density
+    PrimL[1] = 19.5975; //Velocity
+    PrimL[2] = 460.894; //Pressure
 
     std::vector<double> PrimR(3);
-    PrimR[0] = 0.125; //Density
-    PrimR[1] = 0.0; //Velocity
-    PrimR[2] = 0.1; //Pressure
+    PrimR[0] = 5.99242; //Density
+    PrimR[1] = -6.19633; //Velocity
+    PrimR[2] = 46.0950; //Pressure
 
     double P, U;
 
     calcStar(P, U, PrimL, PrimR, gamma, Pinf, b);
+
+    std::cout << "P*: " << P << ", U*: " << U << std::endl;
 
 }
