@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cmath>
 #include <vector>
+#include <algorithm>
 
 void evalPressure(double &F, double &FD, double P2, double P1, double spv1, double gamma, double Pinf, double b){
     if (P2 <= P1){ //Rarefaction
@@ -20,11 +21,11 @@ void calcStar(double &P, double &U, const std::vector<double> &PrimL, const std:
     double tol = 1e-6;
     int Niter = 30;
 
-    double Pstart = 253.494;
-    double Pold = Pstart;
     double Udiff = PrimR[1] - PrimL[1];
     double spvL = 1/PrimL[0];
     double spvR = 1/PrimR[0];
+    double Ppv = 0.5*(PrimL[2]+PrimR[2]) - 0.125*(Udiff)*(PrimL[0]+PrimR[0])*(std::sqrt(gamma*(PrimL[2] + Pinf)*(spvL - b)) + std::sqrt(gamma*(PrimR[2] + Pinf)*(spvR - b)));
+    double Pold = std::max(tol, Ppv);
     double FL, FLD, FR, FRD, change;
 
     for(int i = 0; i < Niter; i++){
@@ -59,7 +60,7 @@ void calcStar(double &P, double &U, const std::vector<double> &PrimL, const std:
     
 }
 //0 rho, 1 U, 2 P
-void sample(std::vector<double> &Prim, double Pstar, double Ustar, double S, const std::double &PrimL, const std::double &PrimR, double Pinf, double b){
+void sample(std::vector<double> &Prim, double Pstar, double Ustar, double S, const std::vector<double> &PrimL, const std::vector<double> &PrimR, double Pinf, double b, double gamma){
     double spvL = 1/PrimL[0];
     double spvR = 1/PrimR[0];
 
@@ -75,7 +76,7 @@ void sample(std::vector<double> &Prim, double Pstar, double Ustar, double S, con
                 Prim[2] = PrimL[2];
             }
             else{ //Primitive Vector is * state
-                Prim[0] = PrimL[1] / (((1 - ((gamma - 1)/(gamma + 1))^2) / ((Pstar + Pinf)/(PrimL[2] + Pinf) + (gamma - 1)/(gamma + 1))) + (gamma - 1)/(gamma + 1));
+                Prim[0] = PrimL[0] / (((1 - pow(((gamma - 1)/(gamma + 1)),2)) / ((Pstar + Pinf)/(PrimL[2] + Pinf) + (gamma - 1)/(gamma + 1))) + (gamma - 1)/(gamma + 1));
                 Prim[1] = Ustar;
                 Prim[2] = Pstar;
             }
@@ -89,7 +90,7 @@ void sample(std::vector<double> &Prim, double Pstar, double Ustar, double S, con
             else{
                 double CLstar = CL*std::pow(Pstar/PrimL[2], (gamma-1)/(2*gamma));
                 if(S >= (Ustar - CLstar)){ //tail of fan (after)
-                    Prim[0] = 1/( (((CL + (PrimL[1] - Ustar)*(gamma - 1)/2)^2) / (gamma*(Pstar + Pinf)) ) + b );
+                    Prim[0] = 1/( ((std::pow((CL + (PrimL[1] - Ustar)*(gamma - 1)/2), 2)) / (gamma*(Pstar + Pinf)) ) + b );
                     Prim[1] = Ustar;
                     Prim[2] = Pstar;
                 }
@@ -106,18 +107,24 @@ void sample(std::vector<double> &Prim, double Pstar, double Ustar, double S, con
         if(Pstar > PrimR[2]){ //Right Shock
             double SR = PrimR[1] + CR*std::sqrt( ((gamma+1)/(2*gamma))*((Pstar + Pinf)/(PrimR[2] + Pinf)) + (gamma-1)/(2*gamma) );
             if(S > SR){ //State is Right State
+            std::cout << "here1" << std::endl;
                 Prim[0] = PrimR[0];
                 Prim[1] = PrimR[1];
                 Prim[2] = PrimR[2];
             }
             else{ //State is * State
-                Prim[0] = PrimR[1] / (((1 - ((gamma - 1)/(gamma + 1))^2) / ((Pstar + Pinf)/(PrimR[2] + Pinf) + (gamma - 1)/(gamma + 1))) + (gamma - 1)/(gamma + 1));
+            std::cout << "here2" << std::endl;
+                Prim[0] = PrimR[0] / (((1 - std::pow((gamma - 1)/(gamma + 1),2)) / ((Pstar + Pinf)/(PrimR[2] + Pinf) + (gamma - 1)/(gamma + 1))) + (gamma - 1)/(gamma + 1));
                 Prim[1] = Ustar;
                 Prim[2] = Pstar;
             }        
         }
         else{ //Right Fan
-            
+            std::cout << "here3" << std::endl;
+            double Cratio = (2/(gamma - 1) + (PrimR[1] - S)/CR)/(2/(gamma-1) - 1);
+            Prim[0] = PrimR[0]*std::pow(Cratio, 2/(gamma-1));
+            Prim[1] = (2*(CR - S)/(gamma - 1) + PrimR[1]) / (-2/(gamma - 1) + 1);
+            Prim[2] = (PrimR[2] + Pinf)*std::pow(Cratio, (2*gamma)/(gamma-1)) - Pinf;
         }
     }
 }
