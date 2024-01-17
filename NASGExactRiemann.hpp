@@ -3,20 +3,14 @@
 #include <vector>
 
 void evalPressure(double &F, double &FD, double P2, double P1, double spv1, double gamma, double Pinf, double b){
-    if (P2 <= P1){ //Rarefaction//OG funcs work, just derivatives needed
+    if (P2 <= P1){ //Rarefaction
         F = (2*std::sqrt(gamma*(P1+Pinf)*(spv1-b))/(gamma-1))*(std::pow((P2 + Pinf)/(P1 + Pinf), (gamma-1)/(2*gamma)) - 1);
-        // F = (2*std::sqrt(gamma*P1*spv1)/(gamma-1))*(std::pow((P2/P1), (gamma -1)/(2*gamma)) -1); //test OG
-        // FD = spv1*std::sqrt(gamma*P1*spv1)*std::pow(P2/P1, -(gamma+1)/(2*gamma)); //test derivative
         FD = (std::sqrt(gamma*(P1+Pinf)*(spv1-b))/(gamma*P1))*std::pow((P2+Pinf)/(P1+Pinf), -(gamma+1)/(2*gamma));
     }
     else{ //Shock
         F = (P2 - P1)*std::sqrt(2.0)/std::sqrt(((P1 + 2*Pinf + P2)*gamma - P1 + P2)/(spv1-b)); 
-        // double A = (2*spv1)/(gamma + 1);
-        // double B = (gamma-1)*P1/(gamma+1);
-        // F = (P2 - P1)*std::sqrt(A/(P2 + B)); //test OG
         double NUM = ((3*P1 + P2 + 4*Pinf)*gamma - P1 + P2)*std::sqrt(2);
         double DENOM = ((2*P1 + 2*P2 + 4*Pinf)*gamma - 2*P1 + 2*P2)*std::sqrt(( (-P1 -P2 -2*Pinf)*gamma + P1 - P2 )/(b-spv1));
-        // FD = std::sqrt(A/(P2 + B))*(1- (P2-P1)/(2*(B+P2))); //test derivative
         FD = NUM/DENOM;
     }
 }
@@ -42,7 +36,7 @@ void calcStar(double &P, double &U, const std::vector<double> &PrimL, const std:
         P = Pold - (FL + FR + Udiff)/(FLD + FRD);
 
         if(P < 0.0){
-            std::cout << "Negative Pressure Generated" << std::endl;
+            std::cout << "Negative Pressure Generated at " << i+1 << " iterations." << std::endl;
             return;
         }
 
@@ -63,4 +57,67 @@ void calcStar(double &P, double &U, const std::vector<double> &PrimL, const std:
     
 
     
+}
+//0 rho, 1 U, 2 P
+void sample(std::vector<double> &Prim, double Pstar, double Ustar, double S, const std::double &PrimL, const std::double &PrimR, double Pinf, double b){
+    double spvL = 1/PrimL[0];
+    double spvR = 1/PrimR[0];
+
+    double CL = std::sqrt(gamma*(PrimL[2] + Pinf)*(spvL - b));
+    double CR = std::sqrt(gamma*(PrimR[2] + Pinf)*(spvR - b));
+
+    if(S <= Ustar){ //Left side of contact surface
+        if(Pstar > PrimL[2]){ //Left Shock
+            double SL = PrimL[1] - CL*std::sqrt( ((gamma+1)/(2*gamma))*((Pstar + Pinf)/(PrimL[2] + Pinf)) + (gamma-1)/(2*gamma) );
+            if(S <= SL){ //Primitive Vector is left state
+                Prim[0] = PrimL[0];
+                Prim[1] = PrimL[1];
+                Prim[2] = PrimL[2];
+            }
+            else{ //Primitive Vector is * state
+                Prim[0] = PrimL[1] / (((1 - ((gamma - 1)/(gamma + 1))^2) / ((Pstar + Pinf)/(PrimL[2] + Pinf) + (gamma - 1)/(gamma + 1))) + (gamma - 1)/(gamma + 1));
+                Prim[1] = Ustar;
+                Prim[2] = Pstar;
+            }
+        }
+        else{ //Left Fan
+            if(S <= (PrimL[1] - CL)){ //head of fan (before)
+                Prim[0] = PrimL[0];
+                Prim[1] = PrimL[1];
+                Prim[2] = PrimL[2];
+            }
+            else{
+                double CLstar = CL*std::pow(Pstar/PrimL[2], (gamma-1)/(2*gamma));
+                if(S >= (Ustar - CLstar)){ //tail of fan (after)
+                    Prim[0] = 1/( (((CL + (PrimL[1] - Ustar)*(gamma - 1)/2)^2) / (gamma*(Pstar + Pinf)) ) + b );
+                    Prim[1] = Ustar;
+                    Prim[2] = Pstar;
+                }
+                else{ //Inside Fan
+                    double Cratio = (2/(gamma - 1) - (PrimL[1] + S)/CL)/(2/(gamma-1) - 1);
+                    Prim[0] = PrimL[0]*std::pow(Cratio, 2/(gamma-1));
+                    Prim[1] = (2*(CL + S)/(gamma - 1) - PrimL[1]) / (2/(gamma - 1) - 1);
+                    Prim[2] = (PrimL[2] + Pinf)*std::pow(Cratio, (2*gamma)/(gamma-1)) - Pinf;
+                }
+            }
+        }
+    }
+    else{ //Right side of contact surface
+        if(Pstar > PrimR[2]){ //Right Shock
+            double SR = PrimR[1] + CR*std::sqrt( ((gamma+1)/(2*gamma))*((Pstar + Pinf)/(PrimR[2] + Pinf)) + (gamma-1)/(2*gamma) );
+            if(S > SR){ //State is Right State
+                Prim[0] = PrimR[0];
+                Prim[1] = PrimR[1];
+                Prim[2] = PrimR[2];
+            }
+            else{ //State is * State
+                Prim[0] = PrimR[1] / (((1 - ((gamma - 1)/(gamma + 1))^2) / ((Pstar + Pinf)/(PrimR[2] + Pinf) + (gamma - 1)/(gamma + 1))) + (gamma - 1)/(gamma + 1));
+                Prim[1] = Ustar;
+                Prim[2] = Pstar;
+            }        
+        }
+        else{ //Right Fan
+            
+        }
+    }
 }
