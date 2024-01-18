@@ -1,6 +1,7 @@
 #include "NASGExactRiemann.hpp"
 #include <vector>
 #include <iostream>
+#include <fstream>
 
 int main(int argc, char *argv[]){
     // NASG Variables
@@ -25,12 +26,20 @@ int main(int argc, char *argv[]){
 
     std::cout << "P*: " << P << ", U*: " << U << std::endl;
 
-    double S = 0.93;
+    double t = 0.25;
+    std::vector<double> x = linspace(-0.9, 1, 99);
     std::vector<double> Prim(3);
 
-    sample(Prim, P, U, S, PrimL, PrimR, Pinf, b, gamma);
+    std::ofstream outputFile("output" + std::to_string(t) + ".csv");
+    outputFile << "\"x\",\"Density\",\"Velocity\",\"Pressure\"\n";
 
-    std::cout << Prim[0] << std::endl;
+    for(int i=0; i < 99; i++){
+        sample(Prim, P, U, x[i]/t, PrimL, PrimR, Pinf, b, gamma);
+        outputFile << x[i] << "," << Prim[0] << "," << Prim[1] << "," << Prim[2] << "\n";
+    }
 
+    outputFile.close();
+
+    return 0;
 
 }

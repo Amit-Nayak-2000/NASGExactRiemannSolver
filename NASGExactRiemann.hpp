@@ -95,6 +95,7 @@ void sample(std::vector<double> &Prim, double Pstar, double Ustar, double S, con
                     Prim[2] = Pstar;
                 }
                 else{ //Inside Fan
+                std::cout << "H" << std::endl;
                     double Cratio = (2/(gamma - 1) - (PrimL[1] + S)/CL)/(2/(gamma-1) - 1);
                     Prim[0] = PrimL[0]*std::pow(Cratio, 2/(gamma-1));
                     Prim[1] = (2*(CL + S)/(gamma - 1) - PrimL[1]) / (2/(gamma - 1) - 1);
@@ -107,24 +108,35 @@ void sample(std::vector<double> &Prim, double Pstar, double Ustar, double S, con
         if(Pstar > PrimR[2]){ //Right Shock
             double SR = PrimR[1] + CR*std::sqrt( ((gamma+1)/(2*gamma))*((Pstar + Pinf)/(PrimR[2] + Pinf)) + (gamma-1)/(2*gamma) );
             if(S > SR){ //State is Right State
-            std::cout << "here1" << std::endl;
+            // std::cout << "here1" << std::endl;
                 Prim[0] = PrimR[0];
                 Prim[1] = PrimR[1];
                 Prim[2] = PrimR[2];
             }
             else{ //State is * State
-            std::cout << "here2" << std::endl;
+            // std::cout << "here2" << std::endl;
                 Prim[0] = PrimR[0] / (((1 - std::pow((gamma - 1)/(gamma + 1),2)) / ((Pstar + Pinf)/(PrimR[2] + Pinf) + (gamma - 1)/(gamma + 1))) + (gamma - 1)/(gamma + 1));
                 Prim[1] = Ustar;
                 Prim[2] = Pstar;
             }        
         }
         else{ //Right Fan
-            std::cout << "here3" << std::endl;
+            // std::cout << "here3" << std::endl;
             double Cratio = (2/(gamma - 1) + (PrimR[1] - S)/CR)/(2/(gamma-1) - 1);
             Prim[0] = PrimR[0]*std::pow(Cratio, 2/(gamma-1));
             Prim[1] = (2*(CR - S)/(gamma - 1) + PrimR[1]) / (-2/(gamma - 1) + 1);
             Prim[2] = (PrimR[2] + Pinf)*std::pow(Cratio, (2*gamma)/(gamma-1)) - Pinf;
         }
     }
+}
+
+std::vector<double> linspace(double a, double b, int N){
+    double dx = (b-a)/(N-1);
+    std::vector<double> result(N);
+
+    for(int i = 0; i < N; i++){
+        result[i] = a + i*dx;
+    }
+
+    return result;
 }
