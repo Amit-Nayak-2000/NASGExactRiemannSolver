@@ -64,8 +64,8 @@ void sample(std::vector<double> &Prim, double Pstar, double Ustar, double S, con
     double spvL = 1/PrimL[0];
     double spvR = 1/PrimR[0];
 
-    double CL = std::sqrt(gamma*(PrimL[2] + Pinf)*(spvL - b));
-    double CR = std::sqrt(gamma*(PrimR[2] + Pinf)*(spvR - b));
+    double CL = std::sqrt(gamma*(PrimL[2] + Pinf)/(PrimL[0]*(1-PrimL[0]*b)));
+    double CR = std::sqrt(gamma*(PrimR[2] + Pinf)/(PrimR[0]*(1-PrimR[0]*b)));
 
     if(S <= Ustar){ //Left side of contact surface
         if(Pstar > PrimL[2]){ //Left Shock
@@ -98,8 +98,12 @@ void sample(std::vector<double> &Prim, double Pstar, double Ustar, double S, con
                 std::cout << "H" << std::endl;
                     double Cratio = (2/(gamma - 1) - (PrimL[1] + S)/CL)/(2/(gamma-1) - 1);
                     Prim[0] = PrimL[0]*std::pow(Cratio, 2/(gamma-1));
-                    Prim[1] = (2*(CL + S)/(gamma - 1) - PrimL[1]) / (2/(gamma - 1) - 1);
+                    Prim[1] = (2/(gamma+1))*((gamma-1)*PrimL[1]/2 + S + CL);
                     Prim[2] = (PrimL[2] + Pinf)*std::pow(Cratio, (2*gamma)/(gamma-1)) - Pinf;
+                    // double Cratio = (2/(gamma - 1) + (PrimL[1] - S)/CL)/(2/(gamma-1) - 1);
+                    // Prim[0] = PrimL[0]*std::pow(Cratio, 2/(gamma-1));
+                    // Prim[1] = (2*(CL - S)/(gamma - 1) + PrimL[1]) / (-2/(gamma - 1) + 1);
+                    // Prim[2] = (PrimL[2] + Pinf)*std::pow(Cratio, (2*gamma)/(gamma-1)) - Pinf;
                 }
             }
         }
@@ -124,7 +128,7 @@ void sample(std::vector<double> &Prim, double Pstar, double Ustar, double S, con
             // std::cout << "here3" << std::endl;
             double Cratio = (2/(gamma - 1) + (PrimR[1] - S)/CR)/(2/(gamma-1) - 1);
             Prim[0] = PrimR[0]*std::pow(Cratio, 2/(gamma-1));
-            Prim[1] = (2*(CR - S)/(gamma - 1) + PrimR[1]) / (-2/(gamma - 1) + 1);
+            Prim[1] = (2/(gamma+1))*((gamma-1)*PrimR[1]/2 + S - CR);
             Prim[2] = (PrimR[2] + Pinf)*std::pow(Cratio, (2*gamma)/(gamma-1)) - Pinf;
         }
     }

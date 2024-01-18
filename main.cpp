@@ -27,13 +27,14 @@ int main(int argc, char *argv[]){
     std::cout << "P*: " << P << ", U*: " << U << std::endl;
 
     double t = 0.25;
-    std::vector<double> x = linspace(-0.9, 1, 99);
+    int datasize = 200;
+    std::vector<double> x = linspace(-0.9, 1, datasize);
     std::vector<double> Prim(3);
 
     std::ofstream outputFile("output" + std::to_string(t) + ".csv");
     outputFile << "\"x\",\"Density\",\"Velocity\",\"Pressure\"\n";
 
-    for(int i=0; i < 99; i++){
+    for(int i=0; i < datasize; i++){
         sample(Prim, P, U, x[i]/t, PrimL, PrimR, Pinf, b, gamma);
         outputFile << x[i] << "," << Prim[0] << "," << Prim[1] << "," << Prim[2] << "\n";
     }
