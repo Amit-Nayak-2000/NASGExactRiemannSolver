@@ -59,8 +59,9 @@ void calcStar(double &P, double &U, const std::vector<double> &PrimL, const std:
 
     
 }
-//0 rho, 1 U, 2 P
-void sample(std::vector<double> &Prim, double Pstar, double Ustar, double S, const std::vector<double> &PrimL, const std::vector<double> &PrimR, double Pinf, double b, double gamma){
+
+//0 rho, 1 U, 2 P, 3 e
+void sample(std::vector<double> &Prim, double Pstar, double Ustar, double S, const std::vector<double> &PrimL, const std::vector<double> &PrimR, double Pinf, double b, double gamma, double q){
     double spvL = 1/PrimL[0];
     double spvR = 1/PrimR[0];
 
@@ -74,11 +75,13 @@ void sample(std::vector<double> &Prim, double Pstar, double Ustar, double S, con
                 Prim[0] = PrimL[0];
                 Prim[1] = PrimL[1];
                 Prim[2] = PrimL[2];
+                Prim[3] = PrimL[3];
             }
             else{ //Primitive Vector is * state
                 Prim[0] = PrimL[0] / (((1 - pow(((gamma - 1)/(gamma + 1)),2)) / ((Pstar + Pinf)/(PrimL[2] + Pinf) + (gamma - 1)/(gamma + 1))) + (gamma - 1)/(gamma + 1));
                 Prim[1] = Ustar;
                 Prim[2] = Pstar;
+                Prim[3] = (Pstar + gamma*Pinf)*(1/Prim[0] - b)/(gamma - 1) + q;
             }
         }
         else{ //Left Fan
@@ -86,6 +89,7 @@ void sample(std::vector<double> &Prim, double Pstar, double Ustar, double S, con
                 Prim[0] = PrimL[0];
                 Prim[1] = PrimL[1];
                 Prim[2] = PrimL[2];
+                Prim[3] = PrimL[3];
             }
             else{
                 double CLstar = CL*std::pow(Pstar/PrimL[2], (gamma-1)/(2*gamma));
@@ -93,17 +97,14 @@ void sample(std::vector<double> &Prim, double Pstar, double Ustar, double S, con
                     Prim[0] = 1/( ((std::pow((CL + (PrimL[1] - Ustar)*(gamma - 1)/2), 2)) / (gamma*(Pstar + Pinf)) ) + b );
                     Prim[1] = Ustar;
                     Prim[2] = Pstar;
+                    Prim[3] = (Pstar + gamma*Pinf)*(1/Prim[0] - b)/(gamma - 1) + q;
                 }
                 else{ //Inside Fan
-                std::cout << "H" << std::endl;
-                    double Cratio = (2/(gamma - 1) - (PrimL[1] + S)/CL)/(2/(gamma-1) - 1);
-                    Prim[0] = PrimL[0]*std::pow(Cratio, 2/(gamma-1));
                     Prim[1] = (2/(gamma+1))*((gamma-1)*PrimL[1]/2 + S + CL);
+                    double Cratio = ((PrimL[1] - Prim[1])*(gamma-1)/2 + CL)/CL;
+                    Prim[0] = 1/((spvL - b)/std::pow(Cratio, 2/(gamma-1)) + b);
                     Prim[2] = (PrimL[2] + Pinf)*std::pow(Cratio, (2*gamma)/(gamma-1)) - Pinf;
-                    // double Cratio = (2/(gamma - 1) + (PrimL[1] - S)/CL)/(2/(gamma-1) - 1);
-                    // Prim[0] = PrimL[0]*std::pow(Cratio, 2/(gamma-1));
-                    // Prim[1] = (2*(CL - S)/(gamma - 1) + PrimL[1]) / (-2/(gamma - 1) + 1);
-                    // Prim[2] = (PrimL[2] + Pinf)*std::pow(Cratio, (2*gamma)/(gamma-1)) - Pinf;
+                    Prim[3] = (Prim[2] + gamma*Pinf)*(1/Prim[0] - b)/(gamma - 1) + q;
                 }
             }
         }
@@ -116,20 +117,22 @@ void sample(std::vector<double> &Prim, double Pstar, double Ustar, double S, con
                 Prim[0] = PrimR[0];
                 Prim[1] = PrimR[1];
                 Prim[2] = PrimR[2];
+                Prim[3] = PrimR[3];
             }
             else{ //State is * State
             // std::cout << "here2" << std::endl;
                 Prim[0] = PrimR[0] / (((1 - std::pow((gamma - 1)/(gamma + 1),2)) / ((Pstar + Pinf)/(PrimR[2] + Pinf) + (gamma - 1)/(gamma + 1))) + (gamma - 1)/(gamma + 1));
                 Prim[1] = Ustar;
                 Prim[2] = Pstar;
+                Prim[3] = (Pstar + gamma*Pinf)*(1/Prim[0] - b)/(gamma - 1) + q;
             }        
         }
-        else{ //Right Fan
-            // std::cout << "here3" << std::endl;
-            double Cratio = (2/(gamma - 1) + (PrimR[1] - S)/CR)/(2/(gamma-1) - 1);
-            Prim[0] = PrimR[0]*std::pow(Cratio, 2/(gamma-1));
+        else{ //Inside Right Fan
             Prim[1] = (2/(gamma+1))*((gamma-1)*PrimR[1]/2 + S - CR);
+            double Cratio = (Prim[1] - PrimR[1])*(gamma-1)/(2*CR) + 1;
+            Prim[0] = 1/((spvR - b)/std::pow(Cratio, 2/(gamma-1)) + b);
             Prim[2] = (PrimR[2] + Pinf)*std::pow(Cratio, (2*gamma)/(gamma-1)) - Pinf;
+            Prim[3] = (Prim[2] + gamma*Pinf)*(1/Prim[0] - b)/(gamma - 1) + q;
         }
     }
 }
