@@ -13,15 +13,15 @@ int main(int argc, char *argv[]){
     // Primitive Vectors: density, velocity, pressure, internal energy
     std::vector<double> PrimL(4);
     PrimL[0] = 1.0; //Density
-    PrimL[1] = 0.0; //Velocity
-    PrimL[2] = 1.0; //Pressure
+    PrimL[1] = -2.0; //Velocity
+    PrimL[2] = 0.4; //Pressure
     //Calculated from above params
     PrimL[3] = (PrimL[2] + gamma*Pinf)*(1/PrimL[0] - b)/(gamma - 1) + q;
 
     std::vector<double> PrimR(4);
-    PrimR[0] = 0.125; //Density
-    PrimR[1] = 0.0; //Velocity
-    PrimR[2] = 0.1; //Pressure
+    PrimR[0] = 1; //Density
+    PrimR[1] = 2; //Velocity
+    PrimR[2] = 0.4; //Pressure
     PrimR[3] = (PrimR[2] + gamma*Pinf)*(1/PrimR[0] - b)/(gamma - 1) + q;
 
     double P, U;
@@ -30,7 +30,7 @@ int main(int argc, char *argv[]){
 
     std::cout << "P*: " << P << ", U*: " << U << std::endl;
 
-    double t = 0.25;
+    double t = 0.15;
     int datasize = 200;
     std::vector<double> x = linspace(-1, 2, datasize);
     std::vector<double> Prim(3);
