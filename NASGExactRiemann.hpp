@@ -94,7 +94,7 @@ void sample(std::vector<double> &Prim, double Pstar, double Ustar, double S, con
             else{
                 double CLstar = CL*std::pow((Pstar + Pinf)/(PrimL[2] + Pinf), (gamma-1)/(2*gamma));
                 if(S >= (Ustar - CLstar)){ //tail of fan (after)
-                    Prim[0] = 1/( ((std::pow((CL + (PrimL[1] - Ustar)*(gamma - 1)/2), 2)) / (gamma*(Pstar + Pinf)) ) + b );
+                    Prim[0] = std::pow((Pstar + Pinf)/(PrimL[2] + Pinf), 1/gamma)*PrimL[0];
                     Prim[1] = Ustar;
                     Prim[2] = Pstar;
                     Prim[3] = (Pstar + gamma*Pinf)*(1/Prim[0] - b)/(gamma - 1) + q;
@@ -128,7 +128,7 @@ void sample(std::vector<double> &Prim, double Pstar, double Ustar, double S, con
             }        
         }
         else{//Right Fan
-            if(S >= (PrimL[1] + CR)){ //Right State
+            if(S >= (PrimR[1] + CR)){ //Right State
                 Prim[0] = PrimR[0];
                 Prim[1] = PrimR[1];
                 Prim[2] = PrimR[2];
@@ -137,7 +137,7 @@ void sample(std::vector<double> &Prim, double Pstar, double Ustar, double S, con
             else{
                 double CRstar = CR*std::pow((Pstar + Pinf)/(PrimR[2] + Pinf), (gamma-1)/(2*gamma));
                 if(S <= (Ustar + CRstar)){ //State is * State
-                    Prim[0] = 1/(std::pow((std::sqrt(gamma*(PrimR[2] + Pinf)*(spvR - b)) + (Ustar - PrimR[1])*(gamma-1)/2), 2)/ gamma*(Pstar + Pinf));
+                    Prim[0] = std::pow((Pstar + Pinf)/(PrimR[2] + Pinf), 1/gamma)*PrimR[0];
                     Prim[1] = Ustar;
                     Prim[2] = Pstar;
                     Prim[3] = (Pstar + gamma*Pinf)*(1/Prim[0] - b)/(gamma - 1) + q;
